@@ -1,6 +1,8 @@
 const express = require('express');
 const http = require('http');
+const socketio = require('socket.io');
 const log4js = require('log4js');
+
 
 const logger = log4js.getLogger();
 logger.level = process.env.loglevel || 'debug';
@@ -25,11 +27,18 @@ const app = express();
 const port = normalizePort(process.env.PORT || '3000');
 app.set('port', port);
 
-app.use((_req, res) => {
-  res.send('hello world');
+app.get('/', (_req, res) => {
+  res.sendFile(`${__dirname}/index.html`);
 });
 
 const server = http.createServer(app);
+const io = socketio(server);
+io.on('connection', (socket) => {
+  logger.debug(`${socket.id} connected`);
+  socket.on('disconnect', () => {
+    logger.debug(`${socket.id} disconnected`);
+  });
+});
 
 
 server.listen(port);
