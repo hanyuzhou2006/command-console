@@ -18,4 +18,19 @@ FROM mcr.microsoft.com/vscode/devcontainers/javascript-node:0-12
 #    && apt-get clean -y \
 #    && rm -rf /var/lib/apt/lists/*
 # ENV DEBIAN_FRONTEND=dialog
+RUN sed -i s@/dl.yarnpkg.com/@/mirrors.aliyun.com/@g /etc/apt/sources.list \
+   && sed -i s@/security.debian.org/@/mirrors.aliyun.com/@g /etc/apt/sources.list \
+   && sed -i s@/deb.debian.org/@/mirrors.aliyun.com/@g /etc/apt/sources.list \
+   && apt-get clean
+RUN apt-get update
+RUN apt-get install  openssh-server -y
+RUN mkdir -p /var/run/sshd
+RUN mkdir -p /root/.ssh
+RUN ssh-keygen -t rsa -f /root/.ssh/id_rsa -N ''
+# RUN sed -i 's/PermitRootLogin without-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+RUN cat /root/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys
+RUN chmod og-wx /root/.ssh/authorized_keys
+COPY init.sh /usr/local/bin/
+RUN chmod u+x /usr/local/bin/init.sh
 
+ENTRYPOINT ["/usr/local/bin/init.sh"]
