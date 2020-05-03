@@ -4,12 +4,23 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Remote Cmd Console</title>
+  <link rel="stylesheet" href="/css/xterm.css" />
+  <script src="/js/xterm.js"></script>
   <script src="/socket.io/socket.io.js"></script>
-  <script>
-    var socket = io();
-  </script>
+ 
 </head>
 <body>
-  
+  <div id="terminal"></div>
+  <script>
+    var term = new Terminal();
+    term.open(document.getElementById('terminal'));
+    var socket = io();
+    socket.on('data',(data)=>{
+      term.write(data);
+    });
+    term.onData((data)=>{
+      socket.emit('data',data);
+    })
+  </script>
 </body>
 </html>

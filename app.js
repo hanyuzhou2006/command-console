@@ -2,7 +2,7 @@ const express = require('express');
 const http = require('http');
 const socketio = require('socket.io');
 const log4js = require('log4js');
-
+const Process = require('./process-manage');
 
 const logger = log4js.getLogger();
 logger.level = process.env.loglevel || 'debug';
@@ -31,11 +31,33 @@ app.get('/', (_req, res) => {
   res.sendFile(`${__dirname}/index.html`);
 });
 
+app.get('/css/xterm.css', (_req, res) => {
+  res.sendFile(`${__dirname}/node_modules/xterm/css/xterm.css`);
+});
+
+app.get('/js/xterm.js', (_req, res) => {
+  res.sendFile(`${__dirname}/node_modules/xterm/lib/xterm.js`);
+});
+
+
 const server = http.createServer(app);
 const io = socketio(server);
-io.on('connection', (socket) => {
+io.on('connection', async (socket) => {
   logger.debug(`${socket.id} connected`);
+  const pro = new Process();
+  await pro.init();
+
+  pro.on('stdout', (data) => {
+    socket.emit('data', data.toString('utf-8'));
+  });
+  pro.on('stderr', (data) => {
+    socket.emit('data', data.toString('utf-8'));
+  });
+  socket.on('data', (data) => {
+    pro.write(data);
+  });
   socket.on('disconnect', () => {
+    pro.end();
     logger.debug(`${socket.id} disconnected`);
   });
 });

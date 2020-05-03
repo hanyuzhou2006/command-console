@@ -13,12 +13,14 @@ class Process extends EventEmitter {
     const self = this;
     return new Promise((resolve, reject) => {
       conn.on('ready', () => {
+        this.ready = true;
         conn.shell((err, stream) => {
           self.stream = stream;
           if (err) reject(err);
           stream.on('close', () => {
             logger.debug('stream close');
-            conn.end();
+            this.ready = false;
+            self.end();
           });
           stream.stdout.on('data', (data) => {
             self.emit('stdout', data);
@@ -36,10 +38,12 @@ class Process extends EventEmitter {
   }
 
   write(cmd) {
+    if (!this.ready) return;
     this.stream.write(cmd);
   }
 
   end() {
+    this.ready = false;
     this.conn.end();
   }
 }
