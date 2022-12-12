@@ -9,7 +9,7 @@
     "test": "jest"
   },
   "dependencies": {
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "log4js": "^6.2.1",
     "socket.io": "^2.3.0",
     "ssh2": "^0.8.9",
